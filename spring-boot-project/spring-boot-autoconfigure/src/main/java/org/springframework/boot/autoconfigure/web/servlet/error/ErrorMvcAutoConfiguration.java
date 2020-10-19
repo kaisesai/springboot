@@ -73,6 +73,8 @@ import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.util.HtmlUtils;
 
 /**
+ * 这是一个渲染 mvc 错误的控制器
+ *
  * {@link EnableAutoConfiguration Auto-configuration} to render errors via an MVC error
  * controller.
  *
@@ -83,11 +85,16 @@ import org.springframework.web.util.HtmlUtils;
  * @author Scott Frederick
  * @since 1.0.0
  */
+// 配置类
 @Configuration(proxyBeanMethods = false)
+// web 容器类型
 @ConditionalOnWebApplication(type = Type.SERVLET)
+// 存在 DispatcherServlet 时生效
 @ConditionalOnClass({ Servlet.class, DispatcherServlet.class })
 // Load before the main WebMvcAutoConfiguration so that the error View is available
+// 在配置 WebMvcAutoConfiguration 类之前进行配置
 @AutoConfigureBefore(WebMvcAutoConfiguration.class)
+// 启动配置属性
 @EnableConfigurationProperties({ ServerProperties.class, ResourceProperties.class, WebMvcProperties.class })
 public class ErrorMvcAutoConfiguration {
 
@@ -97,12 +104,24 @@ public class ErrorMvcAutoConfiguration {
 		this.serverProperties = serverProperties;
 	}
 
+	/**
+	 * 错误属性
+	 *
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnMissingBean(value = ErrorAttributes.class, search = SearchStrategy.CURRENT)
 	public DefaultErrorAttributes errorAttributes() {
 		return new DefaultErrorAttributes();
 	}
 
+	/**
+	 * 基础错误控制器
+	 *
+	 * @param errorAttributes
+	 * @param errorViewResolvers
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnMissingBean(value = ErrorController.class, search = SearchStrategy.CURRENT)
 	public BasicErrorController basicErrorController(ErrorAttributes errorAttributes,
@@ -111,16 +130,30 @@ public class ErrorMvcAutoConfiguration {
 				errorViewResolvers.orderedStream().collect(Collectors.toList()));
 	}
 
+	/**
+	 * 错误页面自定义器
+	 *
+	 * @param dispatcherServletPath
+	 * @return
+	 */
 	@Bean
 	public ErrorPageCustomizer errorPageCustomizer(DispatcherServletPath dispatcherServletPath) {
 		return new ErrorPageCustomizer(this.serverProperties, dispatcherServletPath);
 	}
 
+	/**
+	 * 保留错误控制器目标类后置处理器
+	 *
+	 * @return
+	 */
 	@Bean
 	public static PreserveErrorControllerTargetClassPostProcessor preserveErrorControllerTargetClassPostProcessor() {
 		return new PreserveErrorControllerTargetClassPostProcessor();
 	}
 
+	/**
+	 * 默认错误视图解析器配置类
+	 */
 	@Configuration(proxyBeanMethods = false)
 	static class DefaultErrorViewResolverConfiguration {
 
@@ -134,6 +167,9 @@ public class ErrorMvcAutoConfiguration {
 			this.resourceProperties = resourceProperties;
 		}
 
+		/**
+		 * @return 默认错误视图解析器
+		 */
 		@Bean
 		@ConditionalOnBean(DispatcherServlet.class)
 		@ConditionalOnMissingBean(ErrorViewResolver.class)
@@ -143,6 +179,9 @@ public class ErrorMvcAutoConfiguration {
 
 	}
 
+	/**
+	 * 空白错误视图配置类
+	 */
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnProperty(prefix = "server.error.whitelabel", name = "enabled", matchIfMissing = true)
 	@Conditional(ErrorTemplateMissingCondition.class)
@@ -150,12 +189,18 @@ public class ErrorMvcAutoConfiguration {
 
 		private final StaticView defaultErrorView = new StaticView();
 
+		/**
+		 * @return 默认视图
+		 */
 		@Bean(name = "error")
 		@ConditionalOnMissingBean(name = "error")
 		public View defaultErrorView() {
 			return this.defaultErrorView;
 		}
 
+		/**
+		 * @return bean 名称视图解析器
+		 */
 		// If the user adds @EnableWebMvc then the bean name view resolver from
 		// WebMvcAutoConfiguration disappears, so add it back in to avoid disappointment.
 		@Bean
@@ -169,6 +214,8 @@ public class ErrorMvcAutoConfiguration {
 	}
 
 	/**
+	 * 没有错误模板视图时检测匹配
+	 *
 	 * {@link SpringBootCondition} that matches when no error template view is detected.
 	 */
 	private static class ErrorTemplateMissingCondition extends SpringBootCondition {
@@ -188,6 +235,8 @@ public class ErrorMvcAutoConfiguration {
 	}
 
 	/**
+	 * 一个简单的视图，默认的 HTML 错误页面
+	 *
 	 * Simple {@link View} implementation that writes a default HTML error page.
 	 */
 	private static class StaticView implements View {
@@ -250,6 +299,8 @@ public class ErrorMvcAutoConfiguration {
 	}
 
 	/**
+	 * 错误页面自定义器
+	 *
 	 * {@link WebServerFactoryCustomizer} that configures the server's error pages.
 	 */
 	static class ErrorPageCustomizer implements ErrorPageRegistrar, Ordered {
@@ -265,8 +316,10 @@ public class ErrorMvcAutoConfiguration {
 
 		@Override
 		public void registerErrorPages(ErrorPageRegistry errorPageRegistry) {
+			// 创建一个错误页面，this.properties.getError().getPath() 默认是 /error
 			ErrorPage errorPage = new ErrorPage(
 					this.dispatcherServletPath.getRelativePath(this.properties.getError().getPath()));
+			// 注册一个错误页面
 			errorPageRegistry.addErrorPages(errorPage);
 		}
 
@@ -278,6 +331,8 @@ public class ErrorMvcAutoConfiguration {
 	}
 
 	/**
+	 * 一个 bean 工厂后置处理器，确保错误控制器目标类。使用 AOP 的方式来保存。
+	 *
 	 * {@link BeanFactoryPostProcessor} to ensure that the target class of ErrorController
 	 * MVC beans are preserved when using AOP.
 	 */
@@ -285,9 +340,11 @@ public class ErrorMvcAutoConfiguration {
 
 		@Override
 		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+			// 获取所有的 ErrorController 类
 			String[] errorControllerBeans = beanFactory.getBeanNamesForType(ErrorController.class, false, false);
 			for (String errorControllerBean : errorControllerBeans) {
 				try {
+					// 为其设置保留目标属性的 true
 					beanFactory.getBeanDefinition(errorControllerBean)
 							.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
 				}

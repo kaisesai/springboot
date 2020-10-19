@@ -32,6 +32,8 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
 /**
+ * 配置数据加载器
+ *
  * {@link ConfigDataLoader} for subversion.
  *
  * @author Phillip Webb
@@ -42,6 +44,7 @@ class SubversionConfigDataLoader implements ConfigDataLoader<SubversionConfigDat
 
 	SubversionConfigDataLoader(BootstrapRegistry bootstrapRegistry) {
 		bootstrapRegistry.registerIfAbsent(SubversionClient.class, this::createSubversionClient);
+		// 添加关闭监听器
 		bootstrapRegistry.addCloseListener(closeListener);
 	}
 

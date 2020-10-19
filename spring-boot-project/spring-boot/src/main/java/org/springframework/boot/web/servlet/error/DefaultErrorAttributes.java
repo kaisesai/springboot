@@ -105,8 +105,16 @@ public class DefaultErrorAttributes implements ErrorAttributes, HandlerException
 		request.setAttribute(ERROR_ATTRIBUTE, ex);
 	}
 
+	/**
+	 * 获取错误属性
+	 *
+	 * @param webRequest the source request
+	 * @param options    options for error attribute contents
+	 * @return
+	 */
 	@Override
 	public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions options) {
+		// 获取错误属性
 		Map<String, Object> errorAttributes = getErrorAttributes(webRequest, options.isIncluded(Include.STACK_TRACE));
 		if (Boolean.TRUE.equals(this.includeException)) {
 			options = options.including(Include.EXCEPTION);
@@ -130,9 +138,13 @@ public class DefaultErrorAttributes implements ErrorAttributes, HandlerException
 	@Deprecated
 	public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
 		Map<String, Object> errorAttributes = new LinkedHashMap<>();
+		// 设置时间戳
 		errorAttributes.put("timestamp", new Date());
+		// 设置状态码
 		addStatus(errorAttributes, webRequest);
+		// 设置错误详情
 		addErrorDetails(errorAttributes, webRequest, includeStackTrace);
+		// 设置路径
 		addPath(errorAttributes, webRequest);
 		return errorAttributes;
 	}

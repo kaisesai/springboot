@@ -27,6 +27,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
+ * spring 启动以 war 方式部署的启动器类。
+ *
  * {@link SpringBootServletInitializer} for CLI packaged WAR files.
  *
  * @author Phillip Webb
@@ -49,6 +51,7 @@ public class SpringApplicationWebApplicationInitializer extends SpringBootServle
 		catch (IOException ex) {
 			throw new IllegalStateException(ex);
 		}
+		// 启动 spring web
 		super.onStartup(servletContext);
 	}
 

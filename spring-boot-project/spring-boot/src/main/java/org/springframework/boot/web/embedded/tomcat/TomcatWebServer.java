@@ -100,7 +100,9 @@ public class TomcatWebServer implements WebServer {
 		Assert.notNull(tomcat, "Tomcat Server must not be null");
 		this.tomcat = tomcat;
 		this.autoStart = autoStart;
+		// 优雅关闭
 		this.gracefulShutdown = (shutdown == Shutdown.GRACEFUL) ? new GracefulShutdown(tomcat) : null;
+		// 初始化
 		initialize();
 	}
 
@@ -108,17 +110,23 @@ public class TomcatWebServer implements WebServer {
 		logger.info("Tomcat initialized with port(s): " + getPortsDescription(false));
 		synchronized (this.monitor) {
 			try {
+				// 添加实例 id 到引擎名称
 				addInstanceIdToEngineName();
 
+				// 查找 TomcatEmbeddedContext 容器
 				Context context = findContext();
+				// 添加生命周期监听器
 				context.addLifecycleListener((event) -> {
+					// tomcat 容器的生命周期是 start 事件时
 					if (context.equals(event.getSource()) && Lifecycle.START_EVENT.equals(event.getType())) {
 						// Remove service connectors so that protocol binding doesn't
 						// happen when the service is started.
+						// 删除服务连接器，以便在服务启动的时候不发生协议绑定
 						removeServiceConnectors();
 					}
 				});
 
+				// 启动 Tomcat
 				// Start the server to trigger initialization listeners
 				this.tomcat.start();
 
@@ -126,6 +134,7 @@ public class TomcatWebServer implements WebServer {
 				rethrowDeferredStartupExceptions();
 
 				try {
+					// 上下文绑定类加载器
 					ContextBindings.bindClassLoader(context, context.getNamingToken(), getClass().getClassLoader());
 				}
 				catch (NamingException ex) {
@@ -134,10 +143,13 @@ public class TomcatWebServer implements WebServer {
 
 				// Unlike Jetty, all Tomcat threads are daemon threads. We create a
 				// blocking non-daemon to stop immediate shutdown
+				// 启动守护线程
 				startDaemonAwaitThread();
 			}
 			catch (Exception ex) {
+				// 停止 Tomcat
 				stopSilently();
+				// 销毁 tomcat
 				destroySilently();
 				throw new WebServerException("Unable to start embedded Tomcat", ex);
 			}
@@ -145,6 +157,7 @@ public class TomcatWebServer implements WebServer {
 	}
 
 	private Context findContext() {
+		// 从 host 中查找 TomcatEmbeddedContext 类
 		for (Container child : this.tomcat.getHost().findChildren()) {
 			if (child instanceof Context) {
 				return (Context) child;
@@ -162,19 +175,31 @@ public class TomcatWebServer implements WebServer {
 	}
 
 	private void removeServiceConnectors() {
+		// 遍历所有的服务类
 		for (Service service : this.tomcat.getServer().findServices()) {
+			// 获取服务的连接器
 			Connector[] connectors = service.findConnectors().clone();
+			// 保存服务与连接器的关联关系
 			this.serviceConnectors.put(service, connectors);
+			// 遍历连接器
 			for (Connector connector : connectors) {
+				// 移除服务的连接器
 				service.removeConnector(connector);
 			}
 		}
 	}
 
+	/**
+	 * 重新抛出延迟的启动异常
+	 * @throws Exception
+	 */
 	private void rethrowDeferredStartupExceptions() throws Exception {
+		// 获取容器进行遍历
 		Container[] children = this.tomcat.getHost().findChildren();
 		for (Container container : children) {
+			// 如果是 TomcatEmbeddedContext 内嵌的容器
 			if (container instanceof TomcatEmbeddedContext) {
+				// 获取 Tomcat 启动器
 				TomcatStarter tomcatStarter = ((TomcatEmbeddedContext) container).getStarter();
 				if (tomcatStarter != null) {
 					Exception exception = tomcatStarter.getStartUpException();
@@ -194,6 +219,7 @@ public class TomcatWebServer implements WebServer {
 
 			@Override
 			public void run() {
+				// 守护线程去睡眠
 				TomcatWebServer.this.tomcat.getServer().await();
 			}
 
@@ -213,6 +239,7 @@ public class TomcatWebServer implements WebServer {
 				addPreviouslyRemovedConnectors();
 				Connector connector = this.tomcat.getConnector();
 				if (connector != null && this.autoStart) {
+					// 延迟加载启动
 					performDeferredLoadOnStartup();
 				}
 				checkThatConnectorsHaveStarted();
@@ -250,6 +277,7 @@ public class TomcatWebServer implements WebServer {
 
 	private void stopSilently() {
 		try {
+			// 停止 Tomcat
 			stopTomcat();
 		}
 		catch (LifecycleException ex) {
@@ -302,6 +330,7 @@ public class TomcatWebServer implements WebServer {
 		try {
 			for (Container child : this.tomcat.getHost().findChildren()) {
 				if (child instanceof TomcatEmbeddedContext) {
+					// 延迟加载启动
 					((TomcatEmbeddedContext) child).deferredLoadOnStartup();
 				}
 			}

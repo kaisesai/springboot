@@ -123,6 +123,8 @@ public abstract class AbstractErrorController implements ErrorController {
 	}
 
 	/**
+	 * 解析错误的视图，默认会委派到 ErrorViewResolver 解析器解析错误视图
+	 *
 	 * Resolve any specific error views. By default this method delegates to
 	 * {@link ErrorViewResolver ErrorViewResolvers}.
 	 * @param request the request

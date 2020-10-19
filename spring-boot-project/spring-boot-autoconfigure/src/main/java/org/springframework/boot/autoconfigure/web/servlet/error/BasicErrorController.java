@@ -87,16 +87,31 @@ public class BasicErrorController extends AbstractErrorController {
 		return null;
 	}
 
+	/**
+	 * 处理浏览器页面异常
+	 *
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@RequestMapping(produces = MediaType.TEXT_HTML_VALUE)
 	public ModelAndView errorHtml(HttpServletRequest request, HttpServletResponse response) {
+		// 获取状态码
 		HttpStatus status = getStatus(request);
+		// 获取模型
 		Map<String, Object> model = Collections
 				.unmodifiableMap(getErrorAttributes(request, getErrorAttributeOptions(request, MediaType.TEXT_HTML)));
 		response.setStatus(status.value());
+		// 解析错误视图
 		ModelAndView modelAndView = resolveErrorView(request, response, status, model);
 		return (modelAndView != null) ? modelAndView : new ModelAndView("error", model);
 	}
 
+	/**
+	 * 处理 json 数据异常
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping
 	public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
 		HttpStatus status = getStatus(request);
@@ -107,6 +122,11 @@ public class BasicErrorController extends AbstractErrorController {
 		return new ResponseEntity<>(body, status);
 	}
 
+	/**
+	 * 处理 HttpMediaTypeNotAcceptableException 异常
+	 * @param request
+	 * @return
+	 */
 	@ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
 	public ResponseEntity<String> mediaTypeNotAcceptable(HttpServletRequest request) {
 		HttpStatus status = getStatus(request);

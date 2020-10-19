@@ -23,6 +23,8 @@ import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerF
 import org.springframework.core.Ordered;
 
 /**
+ * web 服务工厂自定义器
+ *
  * {@link WebServerFactoryCustomizer} to apply {@link ServerProperties} to servlet web
  * servers.
  *
@@ -49,18 +51,31 @@ public class ServletWebServerFactoryCustomizer
 	@Override
 	public void customize(ConfigurableServletWebServerFactory factory) {
 		PropertyMapper map = PropertyMapper.get().alwaysApplyingWhenNonNull();
+		//设置端口
 		map.from(this.serverProperties::getPort).to(factory::setPort);
+		// 配置地址
 		map.from(this.serverProperties::getAddress).to(factory::setAddress);
+		// 配置上下文路径
 		map.from(this.serverProperties.getServlet()::getContextPath).to(factory::setContextPath);
+		// 配置程序展示名称
 		map.from(this.serverProperties.getServlet()::getApplicationDisplayName).to(factory::setDisplayName);
+		// 配置是否注册默认的 servlet
 		map.from(this.serverProperties.getServlet()::isRegisterDefaultServlet).to(factory::setRegisterDefaultServlet);
+		// 配置 session
 		map.from(this.serverProperties.getServlet()::getSession).to(factory::setSession);
+		// 配置 ssl
 		map.from(this.serverProperties::getSsl).to(factory::setSsl);
+		// 配置 jsp
 		map.from(this.serverProperties.getServlet()::getJsp).to(factory::setJsp);
+		// 配置压缩
 		map.from(this.serverProperties::getCompression).to(factory::setCompression);
+		// 配置 http2
 		map.from(this.serverProperties::getHttp2).to(factory::setHttp2);
+		// 配置 server 头
 		map.from(this.serverProperties::getServerHeader).to(factory::setServerHeader);
+		// 配置初始化上下文参数
 		map.from(this.serverProperties.getServlet()::getContextParameters).to(factory::setInitParameters);
+		// 配置服务停止设置
 		map.from(this.serverProperties.getShutdown()).to(factory::setShutdown);
 	}
 

@@ -36,6 +36,8 @@ import org.springframework.boot.web.server.WebServerException;
 import org.springframework.util.ClassUtils;
 
 /**
+ * Tomcat 内嵌容器
+ *
  * Tomcat {@link StandardContext} used by {@link TomcatWebServer} to support deferred
  * initialization.
  *

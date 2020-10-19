@@ -56,6 +56,8 @@ public final class ConfigurationPropertySources {
 	}
 
 	/**
+	 * 添加 ConfigurationPropertySource 属性源到环境中
+	 *
 	 * Attach a {@link ConfigurationPropertySource} support to the specified
 	 * {@link Environment}. Adapts each {@link PropertySource} managed by the environment
 	 * to a {@link ConfigurationPropertySource} and allows classic
@@ -70,6 +72,7 @@ public final class ConfigurationPropertySources {
 	 */
 	public static void attach(Environment environment) {
 		Assert.isInstanceOf(ConfigurableEnvironment.class, environment);
+		// 从环境中获取属性源
 		MutablePropertySources sources = ((ConfigurableEnvironment) environment).getPropertySources();
 		PropertySource<?> attached = sources.get(ATTACHED_PROPERTY_SOURCE_NAME);
 		if (attached != null && attached.getSource() != sources) {
@@ -77,6 +80,7 @@ public final class ConfigurationPropertySources {
 			attached = null;
 		}
 		if (attached == null) {
+			// 属性源添加 ConfigurationPropertySourcesPropertySource 属性源到第一个位置上
 			sources.addFirst(new ConfigurationPropertySourcesPropertySource(ATTACHED_PROPERTY_SOURCE_NAME,
 					new SpringConfigurationPropertySources(sources)));
 		}

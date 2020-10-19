@@ -16,23 +16,41 @@
 
 package smoketest.tomcat.web;
 
-import smoketest.tomcat.service.HelloWorldService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import smoketest.tomcat.exception.MyException;
+import smoketest.tomcat.service.HelloWorldService;
+
+import java.util.List;
 
 @Controller
 public class SampleController {
 
-	@Autowired
-	private HelloWorldService helloWorldService;
+  @Autowired
+  private HelloWorldService helloWorldService;
 
-	@GetMapping("/")
-	@ResponseBody
-	public String helloWorld() {
-		return this.helloWorldService.getHelloMessage();
-	}
+  @GetMapping("/")
+  @ResponseBody
+  public String helloWorld() {
+    return this.helloWorldService.getHelloMessage();
+  }
+
+  @GetMapping("/testError")
+  @ResponseBody
+  public String testError(@RequestParam(value = "name") String name) {
+    if ("1".equals(name)) {
+      throw new MyException("服务器内部错误", 100);
+    }
+    return name;
+  }
+
+  @GetMapping("/findAllUserName")
+  @ResponseBody
+  public List<String> findAllUserName() {
+    return helloWorldService.findAllUserName();
+  }
 
 }

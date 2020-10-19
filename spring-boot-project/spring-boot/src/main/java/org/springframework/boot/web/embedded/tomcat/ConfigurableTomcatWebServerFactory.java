@@ -62,6 +62,8 @@ public interface ConfigurableTomcatWebServerFactory extends ConfigurableWebServe
 	void addConnectorCustomizers(TomcatConnectorCustomizer... tomcatConnectorCustomizers);
 
 	/**
+	 * 添加上下文自定义器
+	 *
 	 * Add {@link TomcatContextCustomizer}s that should be added to the Tomcat
 	 * {@link Context}.
 	 * @param tomcatContextCustomizers the customizers to add

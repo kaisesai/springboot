@@ -159,6 +159,8 @@ public class AnnotationConfigServletWebServerApplicationContext extends ServletW
 	}
 
 	/**
+	 * 注册类
+	 *
 	 * Register one or more annotated classes to be processed. Note that
 	 * {@link #refresh()} must be called in order for the context to fully process the new
 	 * class.
@@ -177,6 +179,8 @@ public class AnnotationConfigServletWebServerApplicationContext extends ServletW
 	}
 
 	/**
+	 * 扫描包
+	 *
 	 * Perform a scan within the specified base packages. Note that {@link #refresh()}
 	 * must be called in order for the context to fully process the new class.
 	 * @param basePackages the packages to check for annotated classes
@@ -189,6 +193,9 @@ public class AnnotationConfigServletWebServerApplicationContext extends ServletW
 		this.basePackages = basePackages;
 	}
 
+	/**
+	 * 准备刷新
+	 */
 	@Override
 	protected void prepareRefresh() {
 		this.scanner.clearCache();
@@ -197,10 +204,13 @@ public class AnnotationConfigServletWebServerApplicationContext extends ServletW
 
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		// 后置处理 bean 工厂
 		super.postProcessBeanFactory(beanFactory);
+		// 扫描包
 		if (this.basePackages != null && this.basePackages.length > 0) {
 			this.scanner.scan(this.basePackages);
 		}
+		// 注册注解类
 		if (!this.annotatedClasses.isEmpty()) {
 			this.reader.register(ClassUtils.toClassArray(this.annotatedClasses));
 		}

@@ -24,6 +24,8 @@ import org.springframework.core.Ordered;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * tomcat 服务工厂自定义器
+ *
  * {@link WebServerFactoryCustomizer} to apply {@link ServerProperties} to Tomcat web
  * servers.
  *
@@ -40,6 +42,11 @@ public class TomcatServletWebServerFactoryCustomizer
 		this.serverProperties = serverProperties;
 	}
 
+	/**
+	 * 优先级最高，先被执行
+	 *
+	 * @return
+	 */
 	@Override
 	public int getOrder() {
 		return 0;
@@ -47,23 +54,30 @@ public class TomcatServletWebServerFactoryCustomizer
 
 	@Override
 	public void customize(TomcatServletWebServerFactory factory) {
+		// 获取 Tomcat 属性
 		ServerProperties.Tomcat tomcatProperties = this.serverProperties.getTomcat();
 		if (!ObjectUtils.isEmpty(tomcatProperties.getAdditionalTldSkipPatterns())) {
+			// 添加跳过 TLD 路径
 			factory.getTldSkipPatterns().addAll(tomcatProperties.getAdditionalTldSkipPatterns());
 		}
 		if (tomcatProperties.getRedirectContextRoot() != null) {
+			// 设置上下文重定向
 			customizeRedirectContextRoot(factory, tomcatProperties.getRedirectContextRoot());
 		}
+		// 设置相对的重定向
 		customizeUseRelativeRedirects(factory, tomcatProperties.isUseRelativeRedirects());
+		// 设置禁用 MBean 注册表
 		factory.setDisableMBeanRegistry(!tomcatProperties.getMbeanregistry().isEnabled());
 	}
 
 	private void customizeRedirectContextRoot(ConfigurableTomcatWebServerFactory factory, boolean redirectContextRoot) {
+		// 设置容器初始化器，映射上下文根路径重定向
 		factory.addContextCustomizers((context) -> context.setMapperContextRootRedirectEnabled(redirectContextRoot));
 	}
 
 	private void customizeUseRelativeRedirects(ConfigurableTomcatWebServerFactory factory,
 			boolean useRelativeRedirects) {
+		// 设置相对的重定向
 		factory.addContextCustomizers((context) -> context.setUseRelativeRedirects(useRelativeRedirects));
 	}
 

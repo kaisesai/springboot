@@ -30,6 +30,8 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.Assert;
 
 /**
+ * 错误页面注册器 bean 后置处理器，使用 ErrorPageRegistry 注册所有的错误页面
+ *
  * {@link BeanPostProcessor} that applies all {@link ErrorPageRegistrar}s from the bean
  * factory to {@link ErrorPageRegistry} beans.
  *
@@ -53,6 +55,7 @@ public class ErrorPageRegistrarBeanPostProcessor implements BeanPostProcessor, B
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof ErrorPageRegistry) {
+			// 处理错误页面注册器
 			postProcessBeforeInitialization((ErrorPageRegistry) bean);
 		}
 		return bean;

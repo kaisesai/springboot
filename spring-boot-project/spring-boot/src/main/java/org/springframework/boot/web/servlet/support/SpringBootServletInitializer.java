@@ -50,6 +50,8 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
+ * 这个文件是 spring 应用程序以 war 包形式来部署时启动的类。
+ *
  * An opinionated {@link WebApplicationInitializer} to run a {@link SpringApplication}
  * from a traditional WAR deployment. Binds {@link Servlet}, {@link Filter} and
  * {@link ServletContextInitializer} beans from the application context to the server.
@@ -92,6 +94,7 @@ public abstract class SpringBootServletInitializer implements WebApplicationInit
 		// Logger initialization is deferred in case an ordered
 		// LogServletContextInitializer is being used
 		this.logger = LogFactory.getLog(getClass());
+		// 创建一个 root 程序容器
 		WebApplicationContext rootApplicationContext = createRootApplicationContext(servletContext);
 		if (rootApplicationContext != null) {
 			servletContext.addListener(new SpringBootContextLoaderListener(rootApplicationContext, servletContext));
@@ -127,16 +130,21 @@ public abstract class SpringBootServletInitializer implements WebApplicationInit
 	protected WebApplicationContext createRootApplicationContext(ServletContext servletContext) {
 		SpringApplicationBuilder builder = createSpringApplicationBuilder();
 		builder.main(getClass());
+		// 父容器
 		ApplicationContext parent = getExistingRootWebApplicationContext(servletContext);
 		if (parent != null) {
 			this.logger.info("Root context already created (using as parent).");
 			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, null);
 			builder.initializers(new ParentContextApplicationContextInitializer(parent));
 		}
+		// 容器初始化区
 		builder.initializers(new ServletContextApplicationContextInitializer(servletContext));
+		// 容器工厂
 		builder.contextFactory((webApplicationType) -> new AnnotationConfigServletWebServerApplicationContext());
+		// 配置
 		builder = configure(builder);
 		builder.listeners(new WebEnvironmentPropertySourceInitializer(servletContext));
+		// 构建一个 springApplication
 		SpringApplication application = builder.build();
 		if (application.getAllSources().isEmpty()
 				&& MergedAnnotations.from(getClass(), SearchStrategy.TYPE_HIERARCHY).isPresent(Configuration.class)) {
@@ -150,6 +158,7 @@ public abstract class SpringBootServletInitializer implements WebApplicationInit
 			application.addPrimarySources(Collections.singleton(ErrorPageFilterConfiguration.class));
 		}
 		application.setRegisterShutdownHook(false);
+		// 运行
 		return run(application);
 	}
 
@@ -170,6 +179,7 @@ public abstract class SpringBootServletInitializer implements WebApplicationInit
 	 * @return the {@link WebApplicationContext}
 	 */
 	protected WebApplicationContext run(SpringApplication application) {
+		// 运行可配置的容器
 		return (WebApplicationContext) application.run();
 	}
 

@@ -45,6 +45,9 @@ class SpringApplicationBannerPrinter {
 
 	static final String[] IMAGE_EXTENSION = { "gif", "jpg", "png" };
 
+	/**
+	 * 默认的 banner
+	 */
 	private static final Banner DEFAULT_BANNER = new SpringBootBanner();
 
 	private final ResourceLoader resourceLoader;
@@ -57,13 +60,16 @@ class SpringApplicationBannerPrinter {
 	}
 
 	Banner print(Environment environment, Class<?> sourceClass, Log logger) {
+		// 获取一个 banner
 		Banner banner = getBanner(environment);
 		try {
+			// 执行打印
 			logger.info(createStringFromBanner(banner, environment, sourceClass));
 		}
 		catch (UnsupportedEncodingException ex) {
 			logger.warn("Failed to create String for banner", ex);
 		}
+		// 返回已经打印的 banner
 		return new PrintedBanner(banner, sourceClass);
 	}
 
@@ -75,22 +81,29 @@ class SpringApplicationBannerPrinter {
 
 	private Banner getBanner(Environment environment) {
 		Banners banners = new Banners();
+		// 添加图片 banner
 		banners.addIfNotNull(getImageBanner(environment));
+		// 添加文本 banner
 		banners.addIfNotNull(getTextBanner(environment));
+		// 如果添加了 banner
 		if (banners.hasAtLeastOneBanner()) {
 			return banners;
 		}
 		if (this.fallbackBanner != null) {
 			return this.fallbackBanner;
 		}
+		// 返回默认的 banner
 		return DEFAULT_BANNER;
 	}
 
 	private Banner getTextBanner(Environment environment) {
+		// 从 spring.banner.location 属性中获取 banner 文本文件，默认是 banner.txt
 		String location = environment.getProperty(BANNER_LOCATION_PROPERTY, DEFAULT_BANNER_LOCATION);
+		// 加载资源
 		Resource resource = this.resourceLoader.getResource(location);
 		try {
 			if (resource.exists() && !resource.getURL().toExternalForm().contains("liquibase-core")) {
+				// 创建一个资源 banner
 				return new ResourceBanner(resource);
 			}
 		}
@@ -101,23 +114,36 @@ class SpringApplicationBannerPrinter {
 	}
 
 	private Banner getImageBanner(Environment environment) {
+		// 从 spring.banner.image.location 路径下中获取图片路径
 		String location = environment.getProperty(BANNER_IMAGE_LOCATION_PROPERTY);
 		if (StringUtils.hasLength(location)) {
+			// 路属性对应的路径，则加载图片资源，创建 ImageBanner
 			Resource resource = this.resourceLoader.getResource(location);
 			return resource.exists() ? new ImageBanner(resource) : null;
 		}
+		// 加载  "gif", "jpg", "png" 这些格式结尾的 banner.图片资源
 		for (String ext : IMAGE_EXTENSION) {
 			Resource resource = this.resourceLoader.getResource("banner." + ext);
 			if (resource.exists()) {
+				// 创建 ImageBanner
 				return new ImageBanner(resource);
 			}
 		}
 		return null;
 	}
 
+	/**
+	 * 创建一个 string
+	 * @param banner
+	 * @param environment
+	 * @param mainApplicationClass
+	 * @return
+	 * @throws UnsupportedEncodingException
+	 */
 	private String createStringFromBanner(Banner banner, Environment environment, Class<?> mainApplicationClass)
 			throws UnsupportedEncodingException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		// 执行 banner 打印
 		banner.printBanner(environment, mainApplicationClass, new PrintStream(baos));
 		String charset = environment.getProperty("spring.banner.charset", "UTF-8");
 		return baos.toString(charset);

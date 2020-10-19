@@ -69,6 +69,7 @@ import org.springframework.util.unit.DataSize;
  * @author Chris Bono
  * @since 1.0.0
  */
+// 配置属性，前缀为 server 的属性
 @ConfigurationProperties(prefix = "server", ignoreUnknownFields = true)
 public class ServerProperties {
 

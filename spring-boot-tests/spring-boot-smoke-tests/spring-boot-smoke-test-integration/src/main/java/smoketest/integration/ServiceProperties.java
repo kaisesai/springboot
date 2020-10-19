@@ -19,9 +19,12 @@ package smoketest.integration;
 import java.io.File;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
+@Configuration
 @ConfigurationProperties(prefix = "service", ignoreUnknownFields = false)
 @ManagedResource
 public class ServiceProperties {

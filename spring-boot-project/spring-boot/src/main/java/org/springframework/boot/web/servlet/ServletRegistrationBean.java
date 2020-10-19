@@ -191,10 +191,12 @@ public class ServletRegistrationBean<T extends Servlet> extends DynamicRegistrat
 			urlMapping = DEFAULT_MAPPINGS;
 		}
 		if (!ObjectUtils.isEmpty(urlMapping)) {
+			// 添加 url 映射
 			registration.addMapping(urlMapping);
 		}
 		registration.setLoadOnStartup(this.loadOnStartup);
 		if (this.multipartConfig != null) {
+			// 添加多部分配置
 			registration.setMultipartConfig(this.multipartConfig);
 		}
 	}

@@ -77,42 +77,65 @@ public class TomcatWebServerFactoryCustomizer
 
 	@Override
 	public void customize(ConfigurableTomcatWebServerFactory factory) {
+		// 配置 web 服务工厂信息
+		// 服务属性
 		ServerProperties properties = this.serverProperties;
+		// Tomcat 属性
 		ServerProperties.Tomcat tomcatProperties = properties.getTomcat();
+		// 属性映射器
 		PropertyMapper propertyMapper = PropertyMapper.get();
+		// 设置基础目录
 		propertyMapper.from(tomcatProperties::getBasedir).whenNonNull().to(factory::setBaseDirectory);
+		// 设置背景延迟处理
 		propertyMapper.from(tomcatProperties::getBackgroundProcessorDelay).whenNonNull().as(Duration::getSeconds)
 				.as(Long::intValue).to(factory::setBackgroundProcessorDelay);
+		// 自定义远程 IP 值
 		customizeRemoteIpValve(factory);
+		// Tomcat 线程
 		ServerProperties.Tomcat.Threads threadProperties = tomcatProperties.getThreads();
+		// 配置最大线程数
 		propertyMapper.from(threadProperties::getMax).when(this::isPositive)
 				.to((maxThreads) -> customizeMaxThreads(factory, threadProperties.getMax()));
+		// 配置最小线程数
 		propertyMapper.from(threadProperties::getMinSpare).when(this::isPositive)
 				.to((minSpareThreads) -> customizeMinThreads(factory, minSpareThreads));
+		// 配置最大 http 请求头数量
 		propertyMapper.from(this.serverProperties.getMaxHttpHeaderSize()).whenNonNull().asInt(DataSize::toBytes)
 				.when(this::isPositive)
 				.to((maxHttpHeaderSize) -> customizeMaxHttpHeaderSize(factory, maxHttpHeaderSize));
+		// 配置最大吞吐量
 		propertyMapper.from(tomcatProperties::getMaxSwallowSize).whenNonNull().asInt(DataSize::toBytes)
 				.to((maxSwallowSize) -> customizeMaxSwallowSize(factory, maxSwallowSize));
+		// 最大 http 表单数量
 		propertyMapper.from(tomcatProperties::getMaxHttpFormPostSize).asInt(DataSize::toBytes)
 				.when((maxHttpFormPostSize) -> maxHttpFormPostSize != 0)
 				.to((maxHttpFormPostSize) -> customizeMaxHttpFormPostSize(factory, maxHttpFormPostSize));
+		// 自定义访问日志
 		propertyMapper.from(tomcatProperties::getAccesslog).when(ServerProperties.Tomcat.Accesslog::isEnabled)
 				.to((enabled) -> customizeAccessLog(factory));
+		// 设置 URI 编码
 		propertyMapper.from(tomcatProperties::getUriEncoding).whenNonNull().to(factory::setUriEncoding);
+		// 配置连接超时
 		propertyMapper.from(tomcatProperties::getConnectionTimeout).whenNonNull()
 				.to((connectionTimeout) -> customizeConnectionTimeout(factory, connectionTimeout));
+		// 配置最大连接数量
 		propertyMapper.from(tomcatProperties::getMaxConnections).when(this::isPositive)
 				.to((maxConnections) -> customizeMaxConnections(factory, maxConnections));
+		// 配置连接队列长度
 		propertyMapper.from(tomcatProperties::getAcceptCount).when(this::isPositive)
 				.to((acceptCount) -> customizeAcceptCount(factory, acceptCount));
+		// 处理器缓存数
 		propertyMapper.from(tomcatProperties::getProcessorCache)
 				.to((processorCache) -> customizeProcessorCache(factory, processorCache));
+		// 配置路径未编码字符
 		propertyMapper.from(tomcatProperties::getRelaxedPathChars).as(this::joinCharacters).whenHasText()
 				.to((relaxedChars) -> customizeRelaxedPathChars(factory, relaxedChars));
+		// 配置查询未编码字符
 		propertyMapper.from(tomcatProperties::getRelaxedQueryChars).as(this::joinCharacters).whenHasText()
 				.to((relaxedChars) -> customizeRelaxedQueryChars(factory, relaxedChars));
+		// 配置静态资源
 		customizeStaticResources(factory);
+		// 配置错误报告值
 		customizeErrorReportValve(properties.getError(), factory);
 	}
 
@@ -121,6 +144,7 @@ public class TomcatWebServerFactoryCustomizer
 	}
 
 	private void customizeAcceptCount(ConfigurableTomcatWebServerFactory factory, int acceptCount) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> {
 			ProtocolHandler handler = connector.getProtocolHandler();
 			if (handler instanceof AbstractProtocol) {
@@ -131,6 +155,7 @@ public class TomcatWebServerFactoryCustomizer
 	}
 
 	private void customizeProcessorCache(ConfigurableTomcatWebServerFactory factory, int processorCache) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> {
 			ProtocolHandler handler = connector.getProtocolHandler();
 			if (handler instanceof AbstractProtocol) {
@@ -140,6 +165,7 @@ public class TomcatWebServerFactoryCustomizer
 	}
 
 	private void customizeMaxConnections(ConfigurableTomcatWebServerFactory factory, int maxConnections) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> {
 			ProtocolHandler handler = connector.getProtocolHandler();
 			if (handler instanceof AbstractProtocol) {
@@ -150,6 +176,7 @@ public class TomcatWebServerFactoryCustomizer
 	}
 
 	private void customizeConnectionTimeout(ConfigurableTomcatWebServerFactory factory, Duration connectionTimeout) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> {
 			ProtocolHandler handler = connector.getProtocolHandler();
 			if (handler instanceof AbstractProtocol) {
@@ -160,10 +187,12 @@ public class TomcatWebServerFactoryCustomizer
 	}
 
 	private void customizeRelaxedPathChars(ConfigurableTomcatWebServerFactory factory, String relaxedChars) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> connector.setProperty("relaxedPathChars", relaxedChars));
 	}
 
 	private void customizeRelaxedQueryChars(ConfigurableTomcatWebServerFactory factory, String relaxedChars) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> connector.setProperty("relaxedQueryChars", relaxedChars));
 	}
 
@@ -209,7 +238,9 @@ public class TomcatWebServerFactoryCustomizer
 
 	@SuppressWarnings("rawtypes")
 	private void customizeMaxThreads(ConfigurableTomcatWebServerFactory factory, int maxThreads) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> {
+			// 协议处理器
 			ProtocolHandler handler = connector.getProtocolHandler();
 			if (handler instanceof AbstractProtocol) {
 				AbstractProtocol protocol = (AbstractProtocol) handler;
@@ -220,7 +251,9 @@ public class TomcatWebServerFactoryCustomizer
 
 	@SuppressWarnings("rawtypes")
 	private void customizeMinThreads(ConfigurableTomcatWebServerFactory factory, int minSpareThreads) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> {
+			// 协议处理器
 			ProtocolHandler handler = connector.getProtocolHandler();
 			if (handler instanceof AbstractProtocol) {
 				AbstractProtocol protocol = (AbstractProtocol) handler;
@@ -231,6 +264,7 @@ public class TomcatWebServerFactoryCustomizer
 
 	@SuppressWarnings("rawtypes")
 	private void customizeMaxHttpHeaderSize(ConfigurableTomcatWebServerFactory factory, int maxHttpHeaderSize) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> {
 			ProtocolHandler handler = connector.getProtocolHandler();
 			if (handler instanceof AbstractHttp11Protocol) {
@@ -241,6 +275,7 @@ public class TomcatWebServerFactoryCustomizer
 	}
 
 	private void customizeMaxSwallowSize(ConfigurableTomcatWebServerFactory factory, int maxSwallowSize) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> {
 			ProtocolHandler handler = connector.getProtocolHandler();
 			if (handler instanceof AbstractHttp11Protocol) {
@@ -251,6 +286,7 @@ public class TomcatWebServerFactoryCustomizer
 	}
 
 	private void customizeMaxHttpFormPostSize(ConfigurableTomcatWebServerFactory factory, int maxHttpFormPostSize) {
+		// 添加 TomcatConnectorCustomizer 连接自定义器
 		factory.addConnectorCustomizers((connector) -> connector.setMaxPostSize(maxHttpFormPostSize));
 	}
 
@@ -258,6 +294,7 @@ public class TomcatWebServerFactoryCustomizer
 		ServerProperties.Tomcat tomcatProperties = this.serverProperties.getTomcat();
 		AccessLogValve valve = new AccessLogValve();
 		PropertyMapper map = PropertyMapper.get();
+		// 访问日志
 		Accesslog accessLogConfig = tomcatProperties.getAccesslog();
 		map.from(accessLogConfig.getConditionIf()).to(valve::setConditionIf);
 		map.from(accessLogConfig.getConditionUnless()).to(valve::setConditionUnless);
@@ -278,8 +315,15 @@ public class TomcatWebServerFactoryCustomizer
 		factory.addEngineValves(valve);
 	}
 
+	/**
+	 * 自定义静态资源
+	 *
+	 * @param factory
+	 */
 	private void customizeStaticResources(ConfigurableTomcatWebServerFactory factory) {
+		// 获取资源
 		ServerProperties.Tomcat.Resource resource = this.serverProperties.getTomcat().getResource();
+		// 添加 TomcatContextCustomizer 上下文自定义器
 		factory.addContextCustomizers((context) -> context.addLifecycleListener((event) -> {
 			if (event.getType().equals(Lifecycle.CONFIGURE_START_EVENT)) {
 				context.getResources().setCachingAllowed(resource.isAllowCaching());
@@ -293,6 +337,7 @@ public class TomcatWebServerFactoryCustomizer
 
 	private void customizeErrorReportValve(ErrorProperties error, ConfigurableTomcatWebServerFactory factory) {
 		if (error.getIncludeStacktrace() == IncludeStacktrace.NEVER) {
+			// 添加 TomcatContextCustomizer 上下文自定义器
 			factory.addContextCustomizers((context) -> {
 				ErrorReportValve valve = new ErrorReportValve();
 				valve.setShowServerInfo(false);

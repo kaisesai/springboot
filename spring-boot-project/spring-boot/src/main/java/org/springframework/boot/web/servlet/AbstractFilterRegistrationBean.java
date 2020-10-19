@@ -229,20 +229,24 @@ public abstract class AbstractFilterRegistrationBean<T extends Filter> extends D
 				dispatcherTypes = EnumSet.of(DispatcherType.REQUEST);
 			}
 		}
+		// 收集类信息
 		Set<String> servletNames = new LinkedHashSet<>();
 		for (ServletRegistrationBean<?> servletRegistrationBean : this.servletRegistrationBeans) {
 			servletNames.add(servletRegistrationBean.getServletName());
 		}
 		servletNames.addAll(this.servletNames);
 		if (servletNames.isEmpty() && this.urlPatterns.isEmpty()) {
+			// 添加默认的映射
 			registration.addMappingForUrlPatterns(dispatcherTypes, this.matchAfter, DEFAULT_URL_MAPPINGS);
 		}
 		else {
 			if (!servletNames.isEmpty()) {
+				// 为 servletNames 添加映射
 				registration.addMappingForServletNames(dispatcherTypes, this.matchAfter,
 						StringUtils.toStringArray(servletNames));
 			}
 			if (!this.urlPatterns.isEmpty()) {
+				// 为 urlpattern 添加映射
 				registration.addMappingForUrlPatterns(dispatcherTypes, this.matchAfter,
 						StringUtils.toStringArray(this.urlPatterns));
 			}

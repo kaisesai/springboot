@@ -24,6 +24,8 @@ import org.springframework.boot.ansi.AnsiStyle;
 import org.springframework.core.env.Environment;
 
 /**
+ * 默认的 banner，它会输出 spring 的样子
+ *
  * Default Banner implementation which writes the 'Spring' banner.
  *
  * @author Phillip Webb

@@ -40,8 +40,10 @@ class WebServerStartStopLifecycle implements SmartLifecycle {
 
 	@Override
 	public void start() {
+		// 启动 web 服务
 		this.webServer.start();
 		this.running = true;
+		// 发布 servletweb 已经初始化的事件
 		this.applicationContext
 				.publishEvent(new ServletWebServerInitializedEvent(this.webServer, this.applicationContext));
 	}

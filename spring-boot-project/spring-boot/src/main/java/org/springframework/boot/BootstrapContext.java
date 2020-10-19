@@ -22,6 +22,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 /**
+ * 一个简单的启动器上下文，它在启动和 Environment 后置处理后可用，直到 ApplicationContext 已经准备好。
+ * 提供懒加载的访问单例。
+ *
+ * 提供对单例的懒惰访问，这些单例可能创建起来很代价很高，或者需要在{@link ApplicationContext} 可用之前进行共享。
+ *
  * A simple bootstrap context that is available during startup and {@link Environment}
  * post-processing up to the point that the {@link ApplicationContext} is prepared.
  * <p>

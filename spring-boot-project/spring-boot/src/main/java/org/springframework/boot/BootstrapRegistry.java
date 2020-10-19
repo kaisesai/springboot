@@ -23,6 +23,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.Environment;
 
 /**
+ * 在环境执行后，程序上下文已经准备好的时候，进行注册一些类。可用于注册实例，这些实例可能创建代价高昂，或者需要
+ * 在程序容器可用之前就已经创建好。
+ *
  * A simple object registry that is available during startup and {@link Environment}
  * post-processing up to the point that the {@link ApplicationContext} is prepared.
  * <p>

@@ -54,7 +54,9 @@ public class WebServerFactoryCustomizerBeanPostProcessor implements BeanPostProc
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		// bean 是 WebServerFactory 类型，web 服务工厂
 		if (bean instanceof WebServerFactory) {
+			// 后置处理 web 服务工厂
 			postProcessBeforeInitialization((WebServerFactory) bean);
 		}
 		return bean;
@@ -67,11 +69,18 @@ public class WebServerFactoryCustomizerBeanPostProcessor implements BeanPostProc
 
 	@SuppressWarnings("unchecked")
 	private void postProcessBeforeInitialization(WebServerFactory webServerFactory) {
+		// 获取 web 服务工厂自定义器 WebServerFactoryCustomizer 类型
 		LambdaSafe.callbacks(WebServerFactoryCustomizer.class, getCustomizers(), webServerFactory)
 				.withLogger(WebServerFactoryCustomizerBeanPostProcessor.class)
+				// 后置处理器，自定义 web 服务工厂初始化
 				.invoke((customizer) -> customizer.customize(webServerFactory));
 	}
 
+	/**
+	 * 获取 web 服务自定义工厂
+	 *
+	 * @return
+	 */
 	private Collection<WebServerFactoryCustomizer<?>> getCustomizers() {
 		if (this.customizers == null) {
 			// Look up does not include the parent context
@@ -82,8 +91,14 @@ public class WebServerFactoryCustomizerBeanPostProcessor implements BeanPostProc
 		return this.customizers;
 	}
 
+	/**
+	 * 获取 web 服务自定义器
+	 *
+	 * @return
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Collection<WebServerFactoryCustomizer<?>> getWebServerFactoryCustomizerBeans() {
+		// 从 bean 工厂中获取 WebServerFactoryCustomizer 类型
 		return (Collection) this.beanFactory.getBeansOfType(WebServerFactoryCustomizer.class, false, false).values();
 	}
 

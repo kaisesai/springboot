@@ -16,11 +16,17 @@
 
 package smoketest.tomcat.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import smoketest.tomcat.dao.MyDao;
 
-@Component
+import java.util.List;
+
 public class HelloWorldService {
+
+	@Autowired
+	private MyDao myDao;
 
 	@Value("${name:World}")
 	private String name;
@@ -28,5 +34,11 @@ public class HelloWorldService {
 	public String getHelloMessage() {
 		return "Hello " + this.name;
 	}
+
+
+	public List<String> findAllUserName(){
+		return myDao.findAll();
+	}
+
 
 }

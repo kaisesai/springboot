@@ -80,22 +80,29 @@ public class ServletContextInitializerBeans extends AbstractCollection<ServletCo
 	@SuppressWarnings("varargs")
 	public ServletContextInitializerBeans(ListableBeanFactory beanFactory,
 			Class<? extends ServletContextInitializer>... initializerTypes) {
+		// servletContext 初始化器
 		this.initializers = new LinkedMultiValueMap<>();
 		this.initializerTypes = (initializerTypes.length != 0) ? Arrays.asList(initializerTypes)
 				: Collections.singletonList(ServletContextInitializer.class);
+		// 添加初始化器
 		addServletContextInitializerBeans(beanFactory);
+		// 添加适配器 bean
 		addAdaptableBeans(beanFactory);
+		// 对初始化器进行排序
 		List<ServletContextInitializer> sortedInitializers = this.initializers.values().stream()
 				.flatMap((value) -> value.stream().sorted(AnnotationAwareOrderComparator.INSTANCE))
 				.collect(Collectors.toList());
 		this.sortedList = Collections.unmodifiableList(sortedInitializers);
+		// 打印映射日志
 		logMappings(this.initializers);
 	}
 
 	private void addServletContextInitializerBeans(ListableBeanFactory beanFactory) {
+		// 添加把初始化器类型
 		for (Class<? extends ServletContextInitializer> initializerType : this.initializerTypes) {
 			for (Entry<String, ? extends ServletContextInitializer> initializerBean : getOrderedBeansOfType(beanFactory,
 					initializerType)) {
+				// 添加 servletContext 初始化器
 				addServletContextInitializerBean(initializerBean.getKey(), initializerBean.getValue(), beanFactory);
 			}
 		}
@@ -105,21 +112,26 @@ public class ServletContextInitializerBeans extends AbstractCollection<ServletCo
 			ListableBeanFactory beanFactory) {
 		if (initializer instanceof ServletRegistrationBean) {
 			Servlet source = ((ServletRegistrationBean<?>) initializer).getServlet();
+			// 添加 servlet 类
 			addServletContextInitializerBean(Servlet.class, beanName, initializer, beanFactory, source);
 		}
 		else if (initializer instanceof FilterRegistrationBean) {
 			Filter source = ((FilterRegistrationBean<?>) initializer).getFilter();
+			// 添加 filter 类
 			addServletContextInitializerBean(Filter.class, beanName, initializer, beanFactory, source);
 		}
 		else if (initializer instanceof DelegatingFilterProxyRegistrationBean) {
 			String source = ((DelegatingFilterProxyRegistrationBean) initializer).getTargetBeanName();
+			// 添加委派的过滤器代理注册 bean
 			addServletContextInitializerBean(Filter.class, beanName, initializer, beanFactory, source);
 		}
 		else if (initializer instanceof ServletListenerRegistrationBean) {
 			EventListener source = ((ServletListenerRegistrationBean<?>) initializer).getListener();
+			// 添加 servlet 监听器注册 bean
 			addServletContextInitializerBean(EventListener.class, beanName, initializer, beanFactory, source);
 		}
 		else {
+			// 添加 servletContext 初始化器
 			addServletContextInitializerBean(ServletContextInitializer.class, beanName, initializer, beanFactory,
 					initializer);
 		}
@@ -150,10 +162,14 @@ public class ServletContextInitializerBeans extends AbstractCollection<ServletCo
 
 	@SuppressWarnings("unchecked")
 	protected void addAdaptableBeans(ListableBeanFactory beanFactory) {
+		// 获取多部分配置
 		MultipartConfigElement multipartConfig = getMultipartConfig(beanFactory);
+		// 添加 servlet 注册器 bean 适配器
 		addAsRegistrationBean(beanFactory, Servlet.class, new ServletRegistrationBeanAdapter(multipartConfig));
+		// 添加 filter 注册 bean 适配器
 		addAsRegistrationBean(beanFactory, Filter.class, new FilterRegistrationBeanAdapter());
 		for (Class<?> listenerType : ServletListenerRegistrationBean.getSupportedTypes()) {
+			// 添加事件监听器适配器
 			addAsRegistrationBean(beanFactory, EventListener.class, (Class<EventListener>) listenerType,
 					new ServletListenerRegistrationBeanAdapter());
 		}
@@ -222,17 +238,21 @@ public class ServletContextInitializerBeans extends AbstractCollection<ServletCo
 
 	private void logMappings(MultiValueMap<Class<?>, ServletContextInitializer> initializers) {
 		if (logger.isDebugEnabled()) {
+			//打印 filter 的映射
 			logMappings("filters", initializers, Filter.class, FilterRegistrationBean.class);
+			//打印 servlet 的映射
 			logMappings("servlets", initializers, Servlet.class, ServletRegistrationBean.class);
 		}
 	}
 
 	private void logMappings(String name, MultiValueMap<Class<?>, ServletContextInitializer> initializers,
 			Class<?> type, Class<? extends RegistrationBean> registrationType) {
+		// 从初始器中获取需要查询的类型
 		List<ServletContextInitializer> registrations = new ArrayList<>();
 		registrations.addAll(initializers.getOrDefault(registrationType, Collections.emptyList()));
 		registrations.addAll(initializers.getOrDefault(type, Collections.emptyList()));
 		String info = registrations.stream().map(Object::toString).collect(Collectors.joining(", "));
+		// 打印收集的类信息
 		logger.debug("Mapping " + name + ": " + info);
 	}
 

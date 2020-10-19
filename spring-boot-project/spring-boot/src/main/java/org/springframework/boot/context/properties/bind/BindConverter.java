@@ -85,6 +85,7 @@ final class BindConverter {
 	}
 
 	<T> T convert(Object result, Bindable<T> target) {
+		// 转换
 		return convert(result, target.getType(), target.getAnnotations());
 	}
 
@@ -93,6 +94,7 @@ final class BindConverter {
 		if (value == null) {
 			return null;
 		}
+		// 获取 ConversionService 转化服务进行转化
 		return (T) this.conversionService.convert(value, TypeDescriptor.forObject(value),
 				new ResolvableTypeDescriptor(type, annotations));
 	}

@@ -311,12 +311,16 @@ public class Binder {
 	private <T> T bind(ConfigurationPropertyName name, Bindable<T> target, BindHandler handler, Context context,
 			boolean allowRecursiveBinding, boolean create) {
 		try {
+			// 绑定开始
 			Bindable<T> replacementTarget = handler.onStart(name, target, context);
 			if (replacementTarget == null) {
+				// 处理绑定结果
 				return handleBindResult(name, target, handler, context, null, create);
 			}
 			target = replacementTarget;
+			// 绑定对象
 			Object bound = bindObject(name, target, handler, context, allowRecursiveBinding);
+			// 处理绑定结果
 			return handleBindResult(name, target, handler, context, bound, create);
 		}
 		catch (Exception ex) {
@@ -327,7 +331,9 @@ public class Binder {
 	private <T> T handleBindResult(ConfigurationPropertyName name, Bindable<T> target, BindHandler handler,
 			Context context, Object result, boolean create) throws Exception {
 		if (result != null) {
+			// 成功绑定
 			result = handler.onSuccess(name, target, context, result);
+			// 转换
 			result = context.getConverter().convert(result, target);
 		}
 		if (result == null && create) {
@@ -364,18 +370,33 @@ public class Binder {
 		}
 	}
 
+	/**
+	 * 绑定对象
+	 *
+	 * @param name
+	 * @param target
+	 * @param handler
+	 * @param context
+	 * @param allowRecursiveBinding
+	 * @param <T>
+	 * @return
+	 */
 	private <T> Object bindObject(ConfigurationPropertyName name, Bindable<T> target, BindHandler handler,
 			Context context, boolean allowRecursiveBinding) {
+		// 查找属性
 		ConfigurationProperty property = findProperty(name, context);
 		if (property == null && context.depth != 0 && containsNoDescendantOf(context.getSources(), name)) {
 			return null;
 		}
+		// 获取合集绑定器
 		AggregateBinder<?> aggregateBinder = getAggregateBinder(target, context);
 		if (aggregateBinder != null) {
+			// 绑定合集
 			return bindAggregate(name, target, handler, context, aggregateBinder);
 		}
 		if (property != null) {
 			try {
+				// 绑定属性
 				return bindProperty(target, context, property);
 			}
 			catch (ConverterNotFoundException ex) {
@@ -387,10 +408,12 @@ public class Binder {
 				throw ex;
 			}
 		}
+		// 绑定对象
 		return bindDataObject(name, target, handler, context, allowRecursiveBinding);
 	}
 
 	private AggregateBinder<?> getAggregateBinder(Bindable<?> target, Context context) {
+		//
 		Class<?> resolvedType = target.getType().resolve(Object.class);
 		if (Map.class.isAssignableFrom(resolvedType)) {
 			return new MapBinder(context);
@@ -406,6 +429,7 @@ public class Binder {
 
 	private <T> Object bindAggregate(ConfigurationPropertyName name, Bindable<T> target, BindHandler handler,
 			Context context, AggregateBinder<?> aggregateBinder) {
+		// 元素绑定器
 		AggregateElementBinder elementBinder = (itemName, itemTarget, source) -> {
 			boolean allowRecursiveBinding = aggregateBinder.isAllowRecursiveBinding(source);
 			Supplier<?> supplier = () -> bind(itemName, itemTarget, handler, context, allowRecursiveBinding, false);
@@ -418,6 +442,7 @@ public class Binder {
 		if (name.isEmpty()) {
 			return null;
 		}
+		// 从上下文中查找源
 		for (ConfigurationPropertySource source : context.getSources()) {
 			ConfigurationProperty property = source.getConfigurationProperty(name);
 			if (property != null) {
@@ -428,9 +453,12 @@ public class Binder {
 	}
 
 	private <T> Object bindProperty(Bindable<T> target, Context context, ConfigurationProperty property) {
+		// 设置配置属性
 		context.setConfigurationProperty(property);
 		Object result = property.getValue();
+		// 路径解析器解析
 		result = this.placeholdersResolver.resolvePlaceholders(result);
+		// 转换器进行转换
 		result = context.getConverter().convert(result, target);
 		return result;
 	}

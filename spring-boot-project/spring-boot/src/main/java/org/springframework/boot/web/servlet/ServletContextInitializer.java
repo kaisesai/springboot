@@ -24,6 +24,11 @@ import org.springframework.web.SpringServletContainerInitializer;
 import org.springframework.web.WebApplicationInitializer;
 
 /**
+ * 以编程方式的配置一个 servlet 3.0+ 的容器。它不像 WebApplicationInitializer 接口那样，实现了 WebApplicationInitializer 的子类
+ * 将会被 SpringServletContainerInitializer 发现，而实现了 ServletContextInitializer 接口的子类不会被 SpringServletContainerInitializer
+ * 发现。因此不会被 servlet 容器自动引导。
+ *
+ *
  * Interface used to configure a Servlet 3.0+ {@link ServletContext context}
  * programmatically. Unlike {@link WebApplicationInitializer}, classes that implement this
  * interface (and do not implement {@link WebApplicationInitializer}) will <b>not</b> be

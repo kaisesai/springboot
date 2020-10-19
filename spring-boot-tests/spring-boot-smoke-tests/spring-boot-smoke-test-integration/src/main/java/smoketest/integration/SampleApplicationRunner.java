@@ -34,6 +34,7 @@ public class SampleApplicationRunner implements ApplicationRunner {
 		for (String arg : args.getNonOptionArgs()) {
 			this.gateway.echo(arg);
 		}
+		// System.exit(-1);
 	}
 
 }

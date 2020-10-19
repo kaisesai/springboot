@@ -49,10 +49,18 @@ class SpringApplicationRunListeners {
 		this.applicationStartup = applicationStartup;
 	}
 
+	/**
+	 * 容器正在启动中的事件
+	 *
+	 * @param bootstrapContext
+	 * @param mainApplicationClass
+	 */
 	void starting(ConfigurableBootstrapContext bootstrapContext, Class<?> mainApplicationClass) {
 		doWithListeners("spring.boot.application.starting", (listener) -> listener.starting(bootstrapContext),
 				(step) -> {
 					if (mainApplicationClass != null) {
+						// 设置标签，实际调用 org.springframework.core.metrics.DefaultApplicationStartup.DefaultStartupStep.tag(java.lang.String, java.lang.String) 方法
+						// 记录与校验 tag
 						step.tag("mainApplicationClass", mainApplicationClass.getName());
 					}
 				});
@@ -113,9 +121,12 @@ class SpringApplicationRunListeners {
 
 	private void doWithListeners(String stepName, Consumer<SpringApplicationRunListener> listenerAction,
 			Consumer<StartupStep> stepAction) {
+		// 返回一个启动步骤，
 		StartupStep step = this.applicationStartup.start(stepName);
+		// 让每个容器执行监听器事件
 		this.listeners.forEach(listenerAction);
 		if (stepAction != null) {
+			// 设置标签
 			stepAction.accept(step);
 		}
 		step.end();

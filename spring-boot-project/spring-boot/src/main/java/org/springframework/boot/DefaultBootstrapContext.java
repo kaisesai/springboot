@@ -58,6 +58,7 @@ public class DefaultBootstrapContext implements ConfigurableBootstrapContext {
 			boolean alreadyRegistered = this.instanceSuppliers.containsKey(type);
 			if (replaceExisting || !alreadyRegistered) {
 				Assert.state(!this.instances.containsKey(type), () -> type.getName() + " has already been created");
+				// 注册到 instanceSuppliers 类，实例提供者
 				this.instanceSuppliers.put(type, instanceSupplier);
 			}
 		}
@@ -128,6 +129,7 @@ public class DefaultBootstrapContext implements ConfigurableBootstrapContext {
 	 * @param applicationContext the prepared context
 	 */
 	public void close(ConfigurableApplicationContext applicationContext) {
+		// 事件多播 BootstrapContextClosedEvent 事件
 		this.events.multicastEvent(new BootstrapContextClosedEvent(this, applicationContext));
 	}
 

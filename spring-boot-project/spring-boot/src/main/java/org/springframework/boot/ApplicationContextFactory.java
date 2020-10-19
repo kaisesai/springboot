@@ -45,6 +45,7 @@ public interface ApplicationContextFactory {
 		try {
 			switch (webApplicationType) {
 			case SERVLET:
+				// servlet 的容器 AnnotationConfigServletWebServerApplicationContext
 				return new AnnotationConfigServletWebServerApplicationContext();
 			case REACTIVE:
 				return new AnnotationConfigReactiveWebServerApplicationContext();

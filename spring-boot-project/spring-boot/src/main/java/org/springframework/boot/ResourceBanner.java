@@ -40,6 +40,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 
 /**
+ * 从一个 text 文本资源中打印 banner
+ *
  * Banner implementation that prints from a source text {@link Resource}.
  *
  * @author Phillip Webb
@@ -62,12 +64,15 @@ public class ResourceBanner implements Banner {
 	@Override
 	public void printBanner(Environment environment, Class<?> sourceClass, PrintStream out) {
 		try {
+			// 获取资源中的文本
 			String banner = StreamUtils.copyToString(this.resource.getInputStream(),
 					environment.getProperty("spring.banner.charset", Charset.class, StandardCharsets.UTF_8));
 
 			for (PropertyResolver resolver : getPropertyResolvers(environment, sourceClass)) {
+				// 属性解析器进行解析
 				banner = resolver.resolvePlaceholders(banner);
 			}
+			// 输出到流中
 			out.println(banner);
 		}
 		catch (Exception ex) {

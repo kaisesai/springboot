@@ -80,6 +80,8 @@ public abstract class AutoConfigurationPackages {
 	}
 
 	/**
+	 * 注册包下的类到容器
+	 *
 	 * Programmatically registers the auto-configuration package names. Subsequent
 	 * invocations will add the given package names to those that have already been
 	 * registered. You can use this method to manually define the base packages that will
@@ -101,6 +103,8 @@ public abstract class AutoConfigurationPackages {
 	}
 
 	/**
+	 * 实现了 ImportBeanDefinitionRegistrar 类，从导入的配置来存储基础包信息。
+	 *
 	 * {@link ImportBeanDefinitionRegistrar} to store the base package from the importing
 	 * configuration.
 	 */
@@ -108,6 +112,7 @@ public abstract class AutoConfigurationPackages {
 
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
+			// 注册 bean 定义
 			register(registry, new PackageImports(metadata).getPackageNames().toArray(new String[0]));
 		}
 
@@ -119,6 +124,8 @@ public abstract class AutoConfigurationPackages {
 	}
 
 	/**
+	 * 包装一个包导入器
+	 *
 	 * Wrapper for a package import.
 	 */
 	private static final class PackageImports {
@@ -126,15 +133,19 @@ public abstract class AutoConfigurationPackages {
 		private final List<String> packageNames;
 
 		PackageImports(AnnotationMetadata metadata) {
+			// 解析 AutoConfigurationPackage 类的 basePackages 属性
 			AnnotationAttributes attributes = AnnotationAttributes
 					.fromMap(metadata.getAnnotationAttributes(AutoConfigurationPackage.class.getName(), false));
+			// 获取 basePackages 属性
 			List<String> packageNames = new ArrayList<>(Arrays.asList(attributes.getStringArray("basePackages")));
+			// 获取 basePackageClasses 属性
 			for (Class<?> basePackageClass : attributes.getClassArray("basePackageClasses")) {
 				packageNames.add(basePackageClass.getPackage().getName());
 			}
 			if (packageNames.isEmpty()) {
 				packageNames.add(ClassUtils.getPackageName(metadata.getClassName()));
 			}
+			// 配置包下类名
 			this.packageNames = Collections.unmodifiableList(packageNames);
 		}
 
